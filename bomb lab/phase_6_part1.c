@@ -3,12 +3,16 @@ input = {1, 2, 3, 4, 5, 6};
 f(x) = 7 - x;
 n = {6, 5, 4, 3, 2, 1}
 esi = 0;
+eax = 0;
 while (true) {
-    if (esi != 0) {
+    if (eax != 0) {
         while (ecx != eax) {
             rdx = *(rdx + 8);
             eax++;
         }
+    } else {
+        ecx = *(rsp + rsi);
+
     }
     // when input[i] == 1
     while (true) {
