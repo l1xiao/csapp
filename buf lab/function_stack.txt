@@ -1,0 +1,97 @@
+Dump of assembler code for function test:
+=> 0x08048daa <+0>:     push   %ebp
+   0x08048dab <+1>:     mov    %esp,%ebp
+   0x08048dad <+3>:     push   %ebx
+   0x08048dae <+4>:     sub    $0x24,%esp               // allocate 36 bytes for stack
+   0x08048db1 <+7>:     call   0x8048d90 <uniqueval>    // get canary, and  save it into eax
+   0x08048db6 <+12>:    mov    %eax,-0xc(%ebp)          // 
+   0x08048db9 <+15>:    call   0x80491f4 <getbuf>
+   0x08048dbe <+20>:    mov    %eax,%ebx
+   0x08048dc0 <+22>:    call   0x8048d90 <uniqueval>
+   0x08048dc5 <+27>:    mov    -0xc(%ebp),%edx
+   ---
+   0x08048dc8 <+30>:    cmp    %edx,%eax                // judge canary is if changed
+   0x08048dca <+32>:    je     0x8048dda <test+48>      // not change
+   0x08048dcc <+34>:    movl   $0x804a388,(%esp)
+   0x08048dd3 <+41>:    call   0x80488c0 <puts@plt>
+   0x08048dd8 <+46>:    jmp    0x8048e20 <test+118>     // change
+   ---
+   0x08048dda <+48>:    cmp    0x804d108,%ebx           // val == cookie ?
+   0x08048de0 <+54>:    jne    0x8048e08 <test+94>      // val != cookie
+   ---
+   0x08048de2 <+56>:    mov    %ebx,0x8(%esp)           // val == cookie
+   0x08048de6 <+60>:    movl   $0x804a52a,0x4(%esp)
+   0x08048dee <+68>:    movl   $0x1,(%esp)
+   0x08048df5 <+75>:    call   0x80489c0 <__printf_chk@plt>
+   0x08048dfa <+80>:    movl   $0x3,(%esp)
+   0x08048e01 <+87>:    call   0x804937b <validate>
+   0x08048e06 <+92>:    jmp    0x8048e20 <test+118>
+   ---
+   0x08048e08 <+94>:    mov    %ebx,0x8(%esp)           // val != cookie
+   0x08048e0c <+98>:    movl   $0x804a547,0x4(%esp)
+   0x08048e14 <+106>:   movl   $0x1,(%esp)
+   0x08048e1b <+113>:   call   0x80489c0 <__printf_chk@plt>
+   0x08048e20 <+118>:   add    $0x24,%esp
+   0x08048e23 <+121>:   pop    %ebx
+   0x08048e24 <+122>:   pop    %ebp
+   0x08048e25 <+123>:   ret
+
+Dump of assembler code for function getbuf:
+=> 0x080491f4 <+0>:     push   %ebp                 // save ebp as sfp
+   0x080491f5 <+1>:     mov    %esp,%ebp            // esp point to ebp
+   0x080491f7 <+3>:     sub    $0x38,%esp           // allocate 56 byte for stack
+   0x080491fa <+6>:     lea    -0x28(%ebp),%eax     // allocate 40 bytes for local variables
+   0x080491fd <+9>:     mov    %eax,(%esp)          // construct parameter at stack top
+   0x08049200 <+12>:    call   0x8048cfa <Gets>     // read chars from input
+   0x08049205 <+17>:    mov    $0x1,%eax            // return 1
+   0x0804920a <+22>:    leave
+   0x0804920b <+23>:    ret
+
+Dump of assembler code for function Gets:
+   0x08048cfa <+0>:     push   %ebp
+   0x08048cfb <+1>:     mov    %esp,%ebp
+   0x08048cfd <+3>:     push   %edi
+   0x08048cfe <+4>:     push   %esi
+   0x08048cff <+5>:     push   %ebx
+=> 0x08048d00 <+6>:     sub    $0x1c,%esp
+   0x08048d03 <+9>:     mov    0x8(%ebp),%esi       // esi = &buffer
+   0x08048d06 <+12>:    movl   $0x0,0x804d0fc
+   0x08048d10 <+22>:    mov    %esi,%ebx
+   0x08048d12 <+24>:    jmp    0x8048d5d <Gets+99>
+   0x08048d14 <+26>:    add    $0x1,%ebx
+   0x08048d17 <+29>:    mov    %dl,-0x1(%ebx)
+   0x08048d1a <+32>:    mov    0x804d0fc,%eax
+   0x08048d1f <+37>:    cmp    $0x3ff,%eax
+   0x08048d24 <+42>:    jg     0x8048d5d <Gets+99>
+   0x08048d26 <+44>:    lea    (%eax,%eax,2),%edi
+   0x08048d29 <+47>:    mov    %edx,%ecx
+   0x08048d2b <+49>:    shr    $0x4,%cl
+   0x08048d2e <+52>:    movsbl %cl,%ecx
+   0x08048d31 <+55>:    movzbl 0x804a5e8(%ecx),%ecx
+   0x08048d38 <+62>:    mov    %cl,0x804d140(%edi)
+   0x08048d3e <+68>:    and    $0xf,%edx
+   0x08048d41 <+71>:    movzbl 0x804a5e8(%edx),%edx
+   0x08048d48 <+78>:    mov    %dl,0x804d141(%edi)
+   0x08048d4e <+84>:    movb   $0x20,0x804d142(%edi)
+   0x08048d55 <+91>:    add    $0x1,%eax
+   0x08048d58 <+94>:    mov    %eax,0x804d0fc
+   0x08048d5d <+99>:    mov    0x804d10c,%eax
+   0x08048d62 <+104>:   mov    %eax,(%esp)
+   0x08048d65 <+107>:   call   0x8048870 <_IO_getc@plt>
+   0x08048d6a <+112>:   mov    %eax,%edx
+   0x08048d6c <+114>:   cmp    $0xffffffff,%eax     // recieve EOF, return
+   0x08048d6f <+117>:   je     0x8048d76 <Gets+124>
+   0x08048d71 <+119>:   cmp    $0xa,%eax            // recieve '\n', return
+   0x08048d74 <+122>:   jne    0x8048d14 <Gets+26>
+   0x08048d76 <+124>:   movb   $0x0,(%ebx)          // 
+   0x08048d79 <+127>:   mov    0x804d0fc,%eax
+   0x08048d7e <+132>:   movb   $0x0,0x804d140(%eax,%eax,2)
+   0x08048d86 <+140>:   mov    %esi,%eax
+   0x08048d88 <+142>:   add    $0x1c,%esp
+   0x08048d8b <+145>:   pop    %ebx
+   0x08048d8c <+146>:   pop    %esi
+   0x08048d8d <+147>:   pop    %edi
+   0x08048d8e <+148>:   pop    %ebp
+   0x08048d8f <+149>:   ret
+
+
