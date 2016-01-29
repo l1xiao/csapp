@@ -1,39 +1,20 @@
-This is the handout directory for the CS:APP Cache Lab. 
+## Lab Summary
+#### cache
 
-************************
-Running the autograders:
-************************
+通过这个lab，掌握了cahce的结构和原理
 
-Before running the autograders, compile your code:
-    linux> make
+#### 遇到的问题
 
-Check the correctness of your simulator:
-    linux> ./test-csim
+traces/trans.trace的测试用例不正确，hits少了4个，miss和 evicts多了4 个
 
-Check the correctness and performance of your transpose functions:
-    linux> ./test-trans -M 32 -N 32
-    linux> ./test-trans -M 64 -N 64
-    linux> ./test-trans -M 61 -N 67
+#### 解决办法
 
-Check everything at once (this is the program that your instructor runs):
-    linux> ./driver.py    
+- 实现了verbose模式
+- 写了一个脚本py.py处去掉所有的I指令寻址
+- 用vimdiff确定第一个出现错误的位置在188行
+- 删减trans.trace,使错误在5行输入内出现
+- 使用gdb断点调试，找到错误，是一个非常弱智的边界条件错误
 
-******
-Files:
-******
+#### 反思
 
-# You will modifying and handing in these two files
-csim.c       Your cache simulator
-trans.c      Your transpose function
-
-# Tools for evaluating your simulator and transpose function
-Makefile     Builds the simulator and tools
-README       This file
-driver.py*   The driver program, runs test-csim and test-trans
-cachelab.c   Required helper functions
-cachelab.h   Required header file
-csim-ref*    The executable reference cache simulator
-test-csim*   Tests your cache simulator
-test-trans.c Tests your transpose function
-tracegen.c   Helper program used by test-trans
-traces/      Trace files used by test-csim.c
+- 不要依赖test case来debug，要在写代码之前就想好边界条件，出现错误要先检查逻辑
