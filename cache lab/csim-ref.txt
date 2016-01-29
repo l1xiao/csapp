@@ -1,0 +1,6 @@
+S 600aa0,1 miss 
+S 7ff000384,4 miss 
+L 600a20,4 miss eviction 
+S 600a60,4 miss eviction 
+L 600a24,4 hit 
+hits:1 misses:4 evictions:2
