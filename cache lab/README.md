@@ -5,7 +5,8 @@
 
 #### 遇到的问题
 
-traces/trans.trace的测试用例不正确，hits少了4个，miss和 evicts多了4 个
+- 理解题意时，不理解load和store的区别。从字面上来讲，load是加载，可以理解为读，实际上是指从存储器位置读到寄存器。store是写，从一个寄存器值写到存储器
+- traces/trans.trace的测试用例不正确，hits少了4个，miss和 evicts多了4 个
 
 #### 解决办法
 
