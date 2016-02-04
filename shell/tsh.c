@@ -355,29 +355,20 @@ void sigchld_handler(int sig)
         // printf("\nstate:%d, WIFSTOPED:%d, WIFSIGNALED:%d\n", job->state, WIFSTOPPED(status), WIFSIGNALED(status));
         if (job != NULL) {
             if (WIFSTOPPED(status)) {
-                printf("stopped\n");
+                job->state = ST;
+                printf("Job [%d] (%d) stopped by signal %d\n", job->jid, job->pid, WSTOPSIG(status));
                 return;
-            } else {
-
+            } else if (WIFSIGNALED(status) && WTERMSIG(status) == SIGINT){
+                job->state = ST;
+                printf("Job [%d] (%d) terminated by signal %d\n", job->jid, job->pid, SIGINT);
             }
         } else {
-            printf("job = null\n");
+            unix_error("no such job");
         }
         // printf("%d will be terminated\n", pid);
         // terminate this child process
         deletejob(jobs, pid);
     }
-    /*
-    if (pid == -1 && errno == EINTR) {
-        printf("intrrupt");
-    } else if (pid == -1 && errno == ECHILD) {
-        printf("no child process");
-    }
-    printf("pid:%d", pid);
-    if (errno != ECHILD) {
-        unix_error("waitpid error");
-    }
-    */
     return;
 
 }
@@ -389,6 +380,14 @@ void sigchld_handler(int sig)
  */
 void sigint_handler(int sig)
 {
+    struct job_t* job;
+    pid_t pid = fgpid(jobs);
+    if (pid > 0) {
+        if (( kill(-pid, SIGINT)) == 0) {
+            job = getjobpid(jobs, pid);
+        }
+    }
+    waitfg(job->pid);
     return;
 }
 
@@ -405,10 +404,9 @@ void sigtstp_handler(int sig)
         if ((kill(-pid, SIGTSTP)) == 0) {
             job = getjobpid(jobs, pid);
             // printf("\npid:%d, state:%d\n", pid, job->state);
-            job->state = ST;
         }
     }
-
+    waitfg(job->pid);
     return;
 }
 
