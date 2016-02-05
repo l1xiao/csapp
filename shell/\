@@ -204,7 +204,7 @@ void eval(char *cmdline)
         if (!bg) {
             waitfg(pid);
         } else {
-            printf("[%d] (%d) %s",pid2jid(pid), pid, cmdline);
+            printf("%d %s", pid, cmdline);
         }
     }
     return;
@@ -292,22 +292,14 @@ int builtin_cmd(char **argv)
  */
 void do_bgfg(char **argv)
 {
-    if (argv[1] == NULL) {
-        printf("%s command requires PID or %%jobid argument\n", argv[0]);
-        return;
-    }
     int state = !strcmp(argv[0], "fg") ? FG: BG;
     int id;
     struct job_t* job;
-    // printf("state:%d, %s\n", state, argv[1]);
+    printf("state:%d, %s\n", state, argv[1]);
     // TODO arguments checking
     // jid
     if (*argv[1] == '%') {
         id = atoi(argv[1] + 1);
-        if (id <= 0) {
-            printf("%s: argument must be a PID or %%jobid\n", argv[0]);
-            return;
-        }
         if ((job = getjobjid(jobs, id)) == NULL) {
             printf("%s: No such job\n", argv[1]);
             return;
@@ -316,22 +308,14 @@ void do_bgfg(char **argv)
     // pid
     else {
         id = atoi(argv[1]);
-        if (id <= 0) {
-            printf("%s: argument must be a PID or %%jobid\n", argv[0]);
-            return;
-        }
         if ((job = getjobpid(jobs, id)) == NULL) {
             printf("(%d): No such process\n", id);
             return;
         }
     }
     job->state = state;
-    printf("[%d] (%d) %s", job->jid, job->pid, job->cmdline);
-    // need to
-    kill(-(job->pid), SIGCONT);
-    if (state == FG) {
-        waitfg(job->pid);
-    }
+    printf("state:%s\n", argv[0]);
+    kill(job->pid, SIGCONT);
     return;
 }
 
@@ -341,7 +325,6 @@ void do_bgfg(char **argv)
 void waitfg(pid_t pid)
 {
     while (fgpid(jobs) != 0) {
-        sleep(0);
     }
     return;
 }
@@ -360,29 +343,23 @@ void waitfg(pid_t pid)
 void sigchld_handler(int sig)
 {
     pid_t pid;
-    struct job_t* job;
-    int status;
     // wait all child end
-    while ((pid = waitpid(-1, &status, WNOHANG|WUNTRACED)) > 0) {
-        // judge stop or terminate
-        job = getjobpid(jobs, pid);
-        // printf("\nstate:%d, WIFSTOPED:%d, WIFSIGNALED:%d\n", job->state, WIFSTOPPED(status), WIFSIGNALED(status));
-        if (job != NULL) {
-            if (WIFSTOPPED(status)) {
-                job->state = ST;
-                printf("Job [%d] (%d) stopped by signal %d\n", job->jid, job->pid, WSTOPSIG(status));
-                return;
-            } else if (WIFSIGNALED(status) && WTERMSIG(status) == SIGINT){
-                job->state = ST;
-                printf("Job [%d] (%d) terminated by signal %d\n", job->jid, job->pid, SIGINT);
-            }
-        } else {
-            unix_error("no such job");
-        }
-        // printf("%d will be terminated\n", pid);
+    while ((pid = waitpid(-1, NULL, WNOHANG|WUNTRACED)) > 0) {
+        printf("%d will be terminated", pid);
         // terminate this child process
         deletejob(jobs, pid);
     }
+    /*
+    if (pid == -1 && errno == EINTR) {
+        printf("intrrupt");
+    } else if (pid == -1 && errno == ECHILD) {
+        printf("no child process");
+    }
+    printf("pid:%d", pid);
+    if (errno != ECHILD) {
+        unix_error("waitpid error");
+    }
+    */
     return;
 
 }
@@ -394,14 +371,6 @@ void sigchld_handler(int sig)
  */
 void sigint_handler(int sig)
 {
-    struct job_t* job;
-    pid_t pid = fgpid(jobs);
-    if (pid > 0) {
-        if (( kill(-pid, SIGINT)) == 0) {
-            job = getjobpid(jobs, pid);
-            waitfg(job->pid);
-        }
-    }
     return;
 }
 
@@ -415,12 +384,14 @@ void sigtstp_handler(int sig)
     struct job_t* job;
     pid_t pid = fgpid(jobs);
     if (pid > 0) {
-        if ((kill(-pid, SIGTSTP)) == 0) {
+        printf("pid:%d\n", pid);
+        if ((kill(-1*pid, SIGTSTP)) == 0) {
+
             job = getjobpid(jobs, pid);
-            // printf("\npid:%d, state:%d\n", pid, job->state);
-            waitfg(job->pid);
+            job->state = ST;
         }
     }
+
     return;
 }
 
