@@ -28,7 +28,7 @@ team_t team = {
     /* First member's full name */
     "Li Xiao",
     /* First member's email address */
-    "lixiao@link.cuhk.edu.hk",
+    "lixiao",
     /* Second member's full name (leave blank if none) */
     "",
     /* Second member's email address (leave blank if none) */
@@ -39,6 +39,7 @@ team_t team = {
 #define DSIZE       8
 #define CHUNKSIZE   (1<<12)
 #define ALIGNMENT   8 /* single word (4) or double word (8) alignment */
+#define SIZE_T_SIZE (ALIGN(sizeof(size_t)))
 
 /* rounds up to the nearest multiple of ALIGNMENT */
 #define ALIGN(size)  (((size) + (ALIGNMENT-1)) & ~0x7)
@@ -51,7 +52,7 @@ team_t team = {
 #define PUT(p, val)     (*(unsigned int *)(p) = (val))
 /* read the size and allocated fields from address p */
 #define GET_SIZE(p)     (GET(p) & ~0x7)
-#define GET_ALLOC(p)    (GET(P) & 0x1)
+#define GET_ALLOC(p)    (GET(p) & 0x1)
 /* Given block ptr bp, compute address of its header and footer */
 #define HDRP(bp)        ((char *)(bp) - WSIZE)
 #define FTRP(bp)        ((char *)(bp) + GET_SIZE(HDRP(bp)) - DSIZE)
@@ -75,16 +76,19 @@ static void place(void *bp, size_t asize);
 int mm_init(void)
 {
     /* Create the initial empty heap */
-    if ((heap_listp = mem_sbrk(4*WSIZE)) == (void *)-1)
+    if ((heap_listp = mem_sbrk(4*WSIZE)) == (void *)-1) {
         return -1;
+    }
     PUT(heap_listp, 0);                             /* Alignment padding */
     PUT(heap_listp + (1 * WSIZE), PACK(DSIZE, 1));  /* Prologue header */
     PUT(heap_listp + (2 * WSIZE), PACK(DSIZE, 1));  /* prologue footer */
-    PUT(heap_listp + (3 * WSIZE), PACK(0, 1);
+    PUT((heap_listp + (3 * WSIZE)), PACK(0, 1));
     heap_listp += (2 * WSIZE);
-
-    if (extend_heap(CHUNKSIZE/WSIZE) == NULL)
+    /*
+    if (extend_heap(CHUNKSIZE/WSIZE) == NULL) {
         return -1;
+    }
+    */
     return 0;
 }
 
@@ -100,7 +104,7 @@ static void *extend_heap(size_t words) {
     /* Initialize free block header/footer and the epilogue header */
     PUT(HDRP(bp), PACK(size, 0));
     PUT(FTRP(bp), PACK(size, 0));
-    PUT(HDRP(NEXT_BLKP(bp), PACK(0, 1));
+    PUT(HDRP(NEXT_BLKP(bp)), PACK(0, 1));
 
     /* Coalesce if the previous block was free */
     return coalesce(bp);
@@ -118,7 +122,7 @@ void *mm_malloc(size_t size)
 
     /* Ignore spurious requests */
     if (size == 0) {
-        retun NULL;
+        return NULL;
     }
 
     /* Adjust block size to include overhead and alignment reqs */
@@ -150,8 +154,9 @@ void *mm_malloc(size_t size)
  */
 static void *find_fit(size_t asize) {
     void *bp;
+
     for (bp = heap_listp; GET_SIZE(HDRP(bp)) > 0; bp = NEXT_BLKP(bp)) {
-        if ( !GET_ALLOC(HDRP(bp)) && asize <= GET_SIZE(HDRP(bp))) {
+        if ( !(GET_ALLOC(HDRP(bp))) && asize <= GET_SIZE(HDRP(bp))) {
             return bp;
         }
     }
@@ -183,7 +188,7 @@ static void place(void *bp, size_t asize) {
 /*
  * clear allocated field in header and footer. Coalesce if possible.
  */
-void mm_free(void *ptr)
+void mm_free(void *bp)
 {
     size_t size = GET_SIZE(HDRP(bp));
 
@@ -248,17 +253,3 @@ void *mm_realloc(void *ptr, size_t size)
     mm_free(oldptr);
     return newptr;
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
